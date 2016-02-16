@@ -1,18 +1,27 @@
 package codenarcEntity
 
-import groovy.transform.CompileStatic
+import org.codehaus.jackson.annotate.JsonProperty
 
-@CompileStatic
 class Parameters implements Serializable {
+
     private String name
-    private String description
     private String defaultValue
 
 
-    @Override
-    public String toString() {
-        return "{" +
-                "name='" + name + ", default='" + defaultValue  +
-                '}';
+    String getDefaultValue() {
+        return defaultValue
+    }
+
+    @JsonProperty("default")
+    void setDefaultValue(String defaultValue) {
+        this.defaultValue = defaultValue
+    }
+
+    String getName() {
+        return name
+    }
+
+    void setName(String name) {
+        this.name = name
     }
 }

@@ -12,7 +12,10 @@ dependencies {
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
     testCompile 'junit:junit:4.12'
     compile 'org.slf4j:slf4j-api:1.7.16'
-    compile 'org.codehaus.jackson:jackson-mapper-asl:1.5.0'
     compile 'com.google.code.gson:gson:2.3.1'
+    compile 'org.codehaus.jackson:jackson-core-asl:1.9.13'
+   compile 'com.fasterxml.jackson.core:jackson-annotations:2.5.4'
+    compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
+
 
 }

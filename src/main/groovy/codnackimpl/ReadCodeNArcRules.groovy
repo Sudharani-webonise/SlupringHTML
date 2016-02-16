@@ -1,6 +1,7 @@
 package codnackimpl
 
 import codenarcEntity.CodenarcEntity
+import codenarcEntity.Parameters
 import codenarcEntity.Patterns
 import groovy.transform.CompileStatic
 import groovy.util.logging.Log
@@ -9,32 +10,78 @@ import groovy.util.logging.Log
 @CompileStatic
 class ReadCodeNArcRules {
     static final String BASE_URL = 'http://codenarc.sourceforge.net/';
-
-    public CodenarcEntity readFileCodeNarcRules(String entryPointHTML) {
+    public CodenarcEntity readFileCodenarcRules(String entryPointHTML) {
         CodenarcEntity codenarcEntity = new CodenarcEntity();
         List<Patterns> patternList = new ArrayList<Patterns>();
+        List<Parameters> parametersList
         ExtractHTMLData extractHTMLData = new ExtractHTMLData();
-        String partOfPatternId, partOfPatternId1, subURL;
+        String subURL;
+
+        Patterns singlePattern
+        Parameters singleParameter
+
         try {
             codenarcEntity.setProperty("name", "codenarc")
             entryPointHTML.eachLine { line, count ->
                 String lineInString = line;
+                int tableCount = 0;
                 if (lineInString.contains('''<h3><a href="./''')) {
                     subURL = lineInString.substring(lineInString.lastIndexOf("codenarc"), lineInString.lastIndexOf("html")) + "html"
-                    partOfPatternId = subURL.substring("codenarc-rules-".length(), subURL.lastIndexOf(".html"))
+                    String partOfPatternId = subURL.substring("codenarc-rules-".length(), subURL.lastIndexOf(".html"))
                     String subURLHTML = extractHTMLData.executeCurlCommand(BASE_URL + subURL);
 
                     subURLHTML.eachLine { subURLLine, subURLCount ->
-                        String subURLlineInString = subURLLine;
-                        if (subURLlineInString.contains("<h3>")) {
-                            Patterns pattern = new Patterns();
-                            partOfPatternId1 = subURLlineInString.substring(subURLlineInString.lastIndexOf('''<a name="''')
-                                    + 9, subURLlineInString.lastIndexOf('''">''') - 5)
-                            pattern.setProperty("patternId", partOfPatternId + "_" + partOfPatternId1[0].toLowerCase() +
-                                    partOfPatternId1.substring(1).replace("_", ""))
-                            pattern.setProperty("level", "Warning")
-                            pattern.setProperty("category", "ErrorProne")
-                            patternList.add(pattern)
+                        if (lineInString.contains("<h3>") || lineInString.contains('''<td align="left">''')) {
+                            String subURLlineInString = subURLLine;
+
+                            if (subURLlineInString.contains("<h3>")) {
+                                //check if single pattern already initialized or not
+                                if(singlePattern!= null){
+                                    patternList.add(singlePattern);
+                                }
+                                singlePattern = new Patterns();
+                                String partOfPatternId1 = subURLlineInString.substring(subURLlineInString.lastIndexOf('''<a name="''')
+                                        + 9, subURLlineInString.lastIndexOf('''">''') - 5)
+                                singlePattern.setProperty("patternId", partOfPatternId + "_" + partOfPatternId1[0].toLowerCase() +
+                                        partOfPatternId1.substring(1).replace("_", ""))
+                                singlePattern.setProperty("level", "Warning")
+                                singlePattern.setProperty("category", "ErrorProne")
+                                parametersList = new ArrayList<Parameters>();
+                            } else if (subURLlineInString.contains('''<td align="left"><b>''')) {
+                                //table header so skipping line read
+                            } else if (subURLlineInString.contains('''<td align="left">''')) {
+                                String tdVal
+                                switch (tableCount) {
+                                    case 0:
+                                        singleParameter = new Parameters();
+                                        tdVal = subURLlineInString.substring(subURLlineInString.lastIndexOf('''<td align="left">''') + 17, subURLlineInString.lastIndexOf("</td>"))
+                                        singleParameter.setProperty("name", tdVal);
+                                        tableCount++
+                                        break;
+                                    case 1: tableCount++
+                                        break;
+                                    case 2: if (subURLlineInString.contains("<i>")) {
+                                            tdVal = subURLlineInString.substring(subURLlineInString.lastIndexOf('''<td align="left"><i>''') + 20, subURLlineInString.lastIndexOf("</i>"))
+                                        } else if (subURLlineInString.contains("<tt>")) {
+                                            tdVal = subURLlineInString.substring(subURLlineInString.lastIndexOf('''<td align="left"><tt>''') + 21, subURLlineInString.lastIndexOf("</tt>"))
+                                        } else {
+                                            tdVal = subURLlineInString.substring(subURLlineInString.lastIndexOf('''<td align="left">''') + 17, subURLlineInString.lastIndexOf("</td>"))
+                                        }
+                                        singleParameter.setProperty("defaultValue", tdVal)
+                                        parametersList.add(singleParameter)
+
+                                        if (subURLlineInString.contains("</table>")) {
+                                            singlePattern.setProperty("parameters",parametersList)
+                                            patternList.add(singlePattern)
+                                            singlePattern=null
+                                        }
+
+                                        tableCount = 0
+                                        break;
+                                    default:
+                                        tableCount = 0
+                                }
+                            }
                         }
                     }
                 }
@@ -44,65 +91,8 @@ class ReadCodeNArcRules {
             return codenarcEntity
         }
         catch (Exception e) {
-            throw new Exception("Error in fetching data")
+            throw new Exception("Error in fetching data" + e)
         }
     }
 
 }
-/*
-entryPointHTML.eachLine { line, count ->
-    String lineInString = line;
-    if (lineInString.contains("<h3>") || lineInString.contains('''<td align="left">''')) {
-        String lineInString1 = line;
-        if(lineInString1.contains("<h3>")){
-            partOfPatternId1 = lineInString1.substring(lineInString1.lastIndexOf('''<a name="''')+9, lineInString1.lastIndexOf('''">''')-5)
-            println(partOfPatternId1)
-        }else if(lineInString1.contains('''<td align="left"><b>''') ) {}
-        else if(lineInString1.contains('''<td align="left">''') )   {
-
-            String tdVal = lineInString1.substring(lineInString1.lastIndexOf('''<td align="left">''')+17, lineInString1.lastIndexOf("</td>"))
-
-        }
-    }
-}*/
-/*
-
-static final String BASE_URL = 'http://codenarc.sourceforge.net/';
-
-public CodenarcEntity readFileCodeNarcRules(String entryPointHTML) {
-    CodenarcEntity coadnarcEntity = new CodenarcEntity();
-    List<Patterns> patternList = new ArrayList<Patterns>();
-    ExtractHTMLData extractHTMLData = new ExtractHTMLData();
-    String partOfPatternId, partOfPatternId1, subURL;
-    try {
-        coadnarcEntity.setProperty("name", "codenarc")
-        entryPointHTML.eachLine { line, count ->
-            String lineInString = line;
-            if (lineInString.contains('''<h3><a href="./''')) {
-                subURL = lineInString.substring(lineInString.lastIndexOf("codenarc"), lineInString.lastIndexOf("html")) + "html"
-                partOfPatternId = subURL.substring("codenarc-rules-".length(), subURL.lastIndexOf(".html"))
-                String subURLHTML = extractHTMLData.executeCurlCommand(BASE_URL + subURL);
-
-                subURLHTML.eachLine { subURLLine, subURLCount ->
-                    String subURLlineInString = subURLLine;
-                    if (subURLlineInString.contains("<h3>")) {
-                        Patterns pattern = new Patterns();
-                        partOfPatternId1 = subURLlineInString.substring(subURLlineInString.lastIndexOf('''<a name="''')
-                                + 9, subURLlineInString.lastIndexOf('''">''') - 5)
-                        pattern.setProperty("patternId", partOfPatternId + "_" + partOfPatternId1[0].toLowerCase() +
-                                partOfPatternId1.substring(1).replace("_", ""))
-                        pattern.setProperty("level", "Warning")
-                        pattern.setProperty("category", "ErrorProne")
-                        patternList.add(pattern)
-                    }
-                }
-            }
-        }
-
-        coadnarcEntity.setProperty("patterns", patternList)
-        return coadnarcEntity
-    }
-    catch (Exception e) {
-        throw new Exception("Error in fetching data")
-    }
-}*/

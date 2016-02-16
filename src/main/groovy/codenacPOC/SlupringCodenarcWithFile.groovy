@@ -5,9 +5,9 @@ import groovy.util.logging.Log
 
 @Log
 @CompileStatic
-class SlupringCodeNarcWithFile {
+class SlupringCodenarcWithFile {
 	public static void main(String[] args){
-        SlupringCodeNarcWithFile slupringCodeNarc = new SlupringCodeNarcWithFile();
+        SlupringCodenarcWithFile slupringCodeNarc = new SlupringCodenarcWithFile();
         def baseURL = 'http://codenarc.sourceforge.net/';
         String entryPointHTML =  slupringCodeNarc.executeCurlCommand(baseURL+'codenarc-rule-index.html');
         slupringCodeNarc.readFileCodeNarcRuleFile(entryPointHTML)

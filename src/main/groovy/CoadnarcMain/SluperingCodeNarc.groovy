@@ -4,31 +4,39 @@ package CoadnarcMain
 import codenarcEntity.CodenarcEntity
 import codnackimpl.ExtractHTMLData
 import codnackimpl.ReadCodeNArcRules
-import com.google.gson.Gson
 import groovy.transform.CompileStatic
 import groovy.util.logging.Log
+import org.codehaus.jackson.JsonGenerationException
+import org.codehaus.jackson.map.JsonMappingException
+import org.codehaus.jackson.map.ObjectMapper
 
 @Log
 @CompileStatic
 public class SluperingCodeNarc {
     static final String BASE_URL = 'http://codenarc.sourceforge.net/';
     static final String ENTRY_POINT_URL = 'codenarc-rule-index.html';
-    private static final String jsonFilePath="/home/webonise/slupringHTML.json";
+    private static final String jsonFilePath="/home/webonise/slupringHTMLPARM.json";
 
     public static void main(String[] args) {
         try {
             ExtractHTMLData extractHTMLData = new ExtractHTMLData();
             ReadCodeNArcRules codeNArcRules = new ReadCodeNArcRules();
             String entryPointHTML = extractHTMLData.executeCurlCommand(BASE_URL + ENTRY_POINT_URL);
-            CodenarcEntity coadnarcEntity = codeNArcRules.readFileCodeNarcRules(entryPointHTML)
-            Gson gson = new Gson();
-            String jsonRepresentation = gson.toJson(coadnarcEntity);
-            FileWriter Filewriter = new FileWriter(jsonFilePath);
-            Filewriter.write(jsonRepresentation);
-            Filewriter.close();
-        } catch (Exception e) {
-            log.info("Error {} " + e)
+            CodenarcEntity codenarcEntity = codeNArcRules.readFileCodenarcRules(entryPointHTML)
+            ObjectMapper objectMapper = new ObjectMapper();
+          //  objectMapper.disable(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS);
+
+            objectMapper.writeValue(new File(jsonFilePath), codenarcEntity);
+        } catch (JsonGenerationException e) {
+            e.printStackTrace();
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
+
     }
 }
+
 
