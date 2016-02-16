@@ -1,7 +1,9 @@
 package codenarcEntity
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import org.codehaus.jackson.annotate.JsonProperty
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 class Parameters implements Serializable {
 
     private String name

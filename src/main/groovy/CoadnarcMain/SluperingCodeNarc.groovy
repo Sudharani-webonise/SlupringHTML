@@ -9,6 +9,7 @@ import groovy.util.logging.Log
 import org.codehaus.jackson.JsonGenerationException
 import org.codehaus.jackson.map.JsonMappingException
 import org.codehaus.jackson.map.ObjectMapper
+import org.codehaus.jackson.map.annotate.JsonSerialize
 
 @Log
 @CompileStatic
@@ -24,8 +25,7 @@ public class SluperingCodeNarc {
             String entryPointHTML = extractHTMLData.executeCurlCommand(BASE_URL + ENTRY_POINT_URL);
             CodenarcEntity codenarcEntity = codeNArcRules.readFileCodenarcRules(entryPointHTML)
             ObjectMapper objectMapper = new ObjectMapper();
-          //  objectMapper.disable(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS);
-
+            objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL)
             objectMapper.writeValue(new File(jsonFilePath), codenarcEntity);
         } catch (JsonGenerationException e) {
             e.printStackTrace();

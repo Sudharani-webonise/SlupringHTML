@@ -1,6 +1,9 @@
 package codenarcEntity
 
+import com.fasterxml.jackson.annotation.JsonInclude
 
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 class CodenarcEntity implements Serializable{
     private String name;
     private List<Patterns> patterns;

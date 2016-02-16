@@ -1,10 +1,13 @@
 package codenarcEntity
 
+import com.fasterxml.jackson.annotation.JsonInclude
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 class Patterns  implements Serializable  {
     private String patternId
     private String level
     private String category
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<Parameters> parameters
 
     String getPatternId() {
